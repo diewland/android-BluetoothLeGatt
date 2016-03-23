@@ -238,6 +238,7 @@ public class DeviceControlActivity extends Activity {
     private void displayData(String data) {
         if (data != null) {
             mDataField.setText(data);
+            Log.d(TAG, data);
         }
     }
 

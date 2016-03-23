@@ -66,6 +66,17 @@ public class BluetoothLeService extends Service {
     public final static UUID UUID_HEART_RATE_MEASUREMENT =
             UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
 
+    // bike speed + cadence
+    public static final UUID UUID_CYCLE_MEASUREMENT = UUID.fromString(SampleGattAttributes.CYCLE_MEASUREMENT);
+    private int CrankRevolutions = 0;
+    private int CrankTime = 0;
+    private int WheelRevolutions = 0;
+    private int WheelTime = 0;
+    private int pre_CrankRevolutions = 0;
+    private int pre_CrankTime = 0;
+    private int pre_WheelRevolutions = 0;
+    private int pre_WheelTime = 0;
+
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
     private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
@@ -139,7 +150,30 @@ public class BluetoothLeService extends Service {
             final int heartRate = characteristic.getIntValue(format, 1);
             Log.d(TAG, String.format("Received heart rate: %d", heartRate));
             intent.putExtra(EXTRA_DATA, String.valueOf(heartRate));
-        } else {
+        }
+
+        else if (UUID_CYCLE_MEASUREMENT.equals(characteristic.getUuid())){
+
+            int i = characteristic.getIntValue(17, 0).intValue();
+            this.pre_WheelRevolutions = this.WheelRevolutions;
+            this.pre_WheelTime = this.WheelTime;
+            this.pre_CrankTime = this.CrankTime;
+            this.pre_CrankRevolutions = this.CrankRevolutions;
+            this.WheelRevolutions = 0;
+            this.WheelTime = 0;
+            this.CrankTime = 0;
+            this.CrankRevolutions = 0;
+            if (i == 3)
+            {
+                this.WheelRevolutions = characteristic.getIntValue(20, 1).intValue();
+                this.WheelTime = characteristic.getIntValue(18, 5).intValue();
+                this.CrankRevolutions = characteristic.getIntValue(18, 7).intValue();
+                this.CrankTime = characteristic.getIntValue(18, 9).intValue();
+            }
+            intent.putExtra(EXTRA_DATA, "<CSC>" + this.pre_WheelRevolutions + "," + this.WheelRevolutions + "," + this.pre_WheelTime + "," + this.WheelTime + "," + this.pre_CrankRevolutions + "," + this.CrankRevolutions + "," + this.pre_CrankTime + "," + this.CrankTime + ";");
+        }
+
+        else {
             // For all other profiles, writes the data formatted in HEX.
             final byte[] data = characteristic.getValue();
             if (data != null && data.length > 0) {
@@ -297,7 +331,10 @@ public class BluetoothLeService extends Service {
         mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
 
         // This is specific to Heart Rate Measurement.
-        if (UUID_HEART_RATE_MEASUREMENT.equals(characteristic.getUuid())) {
+        if (UUID_HEART_RATE_MEASUREMENT.equals(characteristic.getUuid())
+            // allow other custom service
+            || UUID_CYCLE_MEASUREMENT.equals(characteristic.getUuid())
+           ) {
             BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
                     UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
             descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
