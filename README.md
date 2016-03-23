@@ -1,8 +1,8 @@
-### Base Features
+### Base Feature
 * Heart Rate Measurement
 
-### Additional Features
+### Additional Feature
 * CSC Measurement
 
-### References
+### Reference
 * [Bluetooth Characteristics](https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicsHome.aspx)
