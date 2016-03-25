@@ -153,8 +153,10 @@ public class BluetoothLeService extends Service {
         }
 
         else if (UUID_CYCLE_MEASUREMENT.equals(characteristic.getUuid())){
-
-            int i = characteristic.getIntValue(17, 0).intValue();
+            /*
+             * https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.csc_measurement.xml
+             */
+            int i = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0).intValue();
             this.pre_WheelRevolutions = this.WheelRevolutions;
             this.pre_WheelTime = this.WheelTime;
             this.pre_CrankTime = this.CrankTime;
@@ -163,12 +165,12 @@ public class BluetoothLeService extends Service {
             this.WheelTime = 0;
             this.CrankTime = 0;
             this.CrankRevolutions = 0;
-            if (i == 3)
+            if (i == 3) // both wheel and crank data
             {
-                this.WheelRevolutions = characteristic.getIntValue(20, 1).intValue();
-                this.WheelTime = characteristic.getIntValue(18, 5).intValue();
-                this.CrankRevolutions = characteristic.getIntValue(18, 7).intValue();
-                this.CrankTime = characteristic.getIntValue(18, 9).intValue();
+                this.WheelRevolutions = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT32, 1).intValue();
+                this.WheelTime = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, 5).intValue();
+                this.CrankRevolutions = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, 7).intValue();
+                this.CrankTime = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, 9).intValue();
             }
             intent.putExtra(EXTRA_DATA, "<CSC>" + this.pre_WheelRevolutions + "," + this.WheelRevolutions + "," + this.pre_WheelTime + "," + this.WheelTime + "," + this.pre_CrankRevolutions + "," + this.CrankRevolutions + "," + this.pre_CrankTime + "," + this.CrankTime + ";");
         }
